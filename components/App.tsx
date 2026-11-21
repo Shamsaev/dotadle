@@ -173,6 +173,7 @@ function Login() {
           </div>
         )}
         <p className="fine">Фанатский проект, не связан с Valve.</p>
+        <p className="legal-links"><a href="/terms">Условия использования</a><a href="/privacy">Конфиденциальность</a></p>
       </main>
     </>
   );

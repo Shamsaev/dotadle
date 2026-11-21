@@ -253,3 +253,15 @@ td .num { font-size: 16px; font-variant-numeric: tabular-nums; }
   .sheet { max-height: 90vh; border-radius: 14px 14px 0 0; }
 }
 input:focus-visible, select:focus-visible { outline: none; }
+
+/* ---------- юридические страницы ---------- */
+.legal { max-width: 680px; line-height: 1.65; }
+.legal h1 { font-size: 28px; margin: 12px 0 4px; }
+.legal h2 { font-size: 17px; margin: 26px 0 6px; }
+.legal ul { padding-left: 20px; }
+.legal li { margin: 6px 0; }
+.legal code { font-size: 13px; background: var(--surface); padding: 1px 5px; border-radius: 4px; }
+.legal hr { border: 0; border-top: 1px solid var(--line); margin: 40px 0 10px; }
+.legal-nav { display: flex; gap: 16px; margin: 10px 0 6px; font-size: 14px; }
+.legal-links { display: flex; gap: 14px; justify-content: center; font-size: 12px; margin-top: 10px; }
+.legal-links a { color: var(--muted); }

@@ -25,6 +25,7 @@ export default function Help() {
       <p>Очки идут в общий рейтинг и в рейтинг лиги твоего сервера: за сегодня, за сезон (месяц) и за всё время.</p>
 
       <p className="fine">Фанатский проект, не связан с Valve. Dota 2 и герои принадлежат Valve Corporation.</p>
+      <p className="legal-links"><a href="/terms" target="_blank">Условия использования</a><a href="/privacy" target="_blank">Конфиденциальность</a></p>
     </div>
   );
 }
