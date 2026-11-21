@@ -20,9 +20,15 @@ const PANEL_TITLE: Record<Exclude<Panel, null>, string> = { top: "Рейтинг
 
 const Icon = {
   chart: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" strokeLinecap="round" /></svg>,
-  inf: <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18.2 8.2a5 5 0 1 1 0 7.6L12 12l-6.2-3.8a5 5 0 1 0 0 7.6L12 12" strokeLinecap="round" /></svg>,
+  inf: <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M7 8.5c-2 0-3.5 1.6-3.5 3.5S5 15.5 7 15.5c3 0 7-7 10-7 2 0 3.5 1.6 3.5 3.5S19 15.5 17 15.5c-3 0-7-7-10-7z" strokeLinejoin="round" /></svg>,
   help: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5M12 17.5v.5" strokeLinecap="round" /></svg>,
 };
+
+// Логотип из плиток, как клетки самой игры
+function Brand() {
+  const tiles: [string, string][] = [["D", ""], ["O", ""], ["T", ""], ["A", ""], ["D", "g"], ["L", "y"], ["E", "g"]];
+  return <div className="brand" aria-label="Dotadle">{tiles.map(([c, k], i) => <i key={i} className={k} aria-hidden>{c}</i>)}</div>;
+}
 
 export default function App() {
   const [phase, setPhase] = useState<"boot" | "login" | "ready" | "error">("boot");
@@ -93,7 +99,7 @@ export default function App() {
   return (
     <AppCtx.Provider value={{ me, reload, roomId, activeLid, setActiveLid }}>
       <header className="bar">
-        <div className="brand">DOTA<span>DLE</span></div>
+        <Brand />
         <nav className="modes">
           {MODES.map(([k, label]) => (
             <button key={k} className={mode === k ? "on" : ""} onClick={() => { setMode(k); setPanel(null); }}>{label}</button>
@@ -147,7 +153,7 @@ function Login() {
   };
   return (
     <>
-      <header className="bar"><div className="brand">DOTA<span>DLE</span></div></header>
+      <header className="bar"><Brand /></header>
       <main className="stage login-stage">
         <h2>Угадай героя Dota 2</h2>
         <p className="sub">Каждый день новый герой. Угадывай по параметрам или по портрету из символов, соревнуйся с друзьями в гонке.</p>

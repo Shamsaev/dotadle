@@ -46,16 +46,18 @@ export function HeroSearch({ exclude, onPick, disabled, placeholder }: {
     return scored.slice(0, 24).map((x) => x.h);
   }, [q, exclude]);
 
-  const pick = (id: number) => { setQ(""); setSel(0); onPick(id); ref.current?.focus(); };
+  // поле не блокируем во время запроса, иначе браузер снимает с него фокус
+  const pick = (id: number) => { if (disabled) return; setQ(""); setSel(0); onPick(id); ref.current?.focus(); };
+  useEffect(() => { if (window.matchMedia("(pointer: fine)").matches) ref.current?.focus(); }, []);
   return (
     <div className="search">
-      <input ref={ref} value={q} disabled={disabled} placeholder={placeholder ?? "Введи имя героя (можно по-русски)…"}
+      <input ref={ref} value={q} placeholder={placeholder ?? "Введи имя героя (можно по-русски)…"}
         autoComplete="off" autoCorrect="off" spellCheck={false}
         onChange={(e) => { setQ(e.target.value); setSel(0); }}
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") { setSel((s) => Math.min(s + 1, options.length - 1)); e.preventDefault(); }
           if (e.key === "ArrowUp") { setSel((s) => Math.max(s - 1, 0)); e.preventDefault(); }
-          if (e.key === "Enter" && options[sel]) pick(options[sel].id);
+          if (e.key === "Enter" && options[sel]) { e.preventDefault(); pick(options[sel].id); }
           if (e.key === "Escape") setQ("");
         }} />
       {options.length > 0 && (
@@ -128,7 +130,7 @@ export function AsciiArt({ art }: { art: Art }) {
         const c = art.chars[i];
         if (c === " ") continue;
         const col = "#" + art.colors.slice(i * 3, i * 3 + 3);
-        if (big) { ctx.globalAlpha = 0.22; ctx.fillStyle = col; ctx.fillRect(x * cw + 1, y * ch + 1, cw - 2, ch - 2); }
+        if (big) { ctx.globalAlpha = 0.14; ctx.fillStyle = col; ctx.fillRect(x * cw + 1, y * ch + 1, cw - 2, ch - 2); }
         ctx.globalAlpha = 1; ctx.fillStyle = col;
         ctx.fillText(c, x * cw + cw / 2, y * ch + ch / 2);
       }
