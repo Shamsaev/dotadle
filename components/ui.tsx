@@ -3,8 +3,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Art, Cell, HEROES, PublicUser, PuzzleView, copyText, ext, faceUrl, norm, shareText, tries } from "./client";
 
 // ---------- Аватар и имя игрока ----------
+// По умолчанию — аватарка Discord/Google; если игрок выбрал героя или аватарки нет — герой
 export function Avatar({ u, size = 28 }: { u?: Partial<PublicUser> | null; size?: number }) {
-  return <img className="ava" src={faceUrl(u?.hero)} alt="" width={size} height={size} style={{ width: size, height: size }} />;
+  const [broken, setBroken] = useState(false);
+  const own = !u?.useHero && u?.image && !broken ? ext(u.image) : undefined;
+  return <img className="ava" src={own ?? faceUrl(u?.hero)} alt="" width={size} height={size} style={{ width: size, height: size }}
+    referrerPolicy="no-referrer" onError={() => setBroken(true)} />;
 }
 export function UserName({ u }: { u?: Partial<PublicUser> | null }) {
   if (!u) return <span>Игрок</span>;
@@ -160,7 +164,7 @@ export function Puzzle({ view, onGuess, busy, title, points, extra, footer }: {
               return <span key={i} className={g ? (g.ok ? "ok" : "no") : ""} title={g?.name}>{g ? <img src={g.img} alt="" /> : i + 1}</span>;
             })}</div>
             {!!view.hints?.length && <ul className="hints">{view.hints.map((h) => <li key={h}>💡 {h}</li>)}</ul>}
-            {!done && <p className="sub">Осталось попыток: {(view.tries ?? 6) - view.attempts}. С каждой ошибкой портрет становится чётче.</p>}
+            {!done && <p className="sub">Осталось попыток: {(view.tries ?? 6) - view.attempts}</p>}
           </div>
         </div>
       )}
@@ -183,14 +187,6 @@ export function Puzzle({ view, onGuess, busy, title, points, extra, footer }: {
       )}
 
       {view.mode === "c" && view.columns && <ClassicRows columns={view.columns} rows={view.rows ?? []} animateFirst={anim} />}
-      {view.mode === "c" && (
-        <div className="legend">
-          <span><i style={{ background: "var(--ok)" }} />совпадает</span>
-          <span><i style={{ background: "var(--part)" }} />частично</span>
-          <span><i style={{ background: "var(--no)" }} />мимо</span>
-          <span>⬆⬇ у загаданного больше или меньше</span>
-        </div>
-      )}
       {footer}
     </div>
   );

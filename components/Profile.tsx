@@ -33,7 +33,7 @@ function MeSection() {
   return (
     <>
       <div className="card profile-head">
-        <Avatar u={{ hero: me.user.hero }} size={72} />
+        <Avatar u={{ hero: me.user.hero, image: me.user.image, useHero: me.user.useHero }} size={72} />
         <div>
           <h3 style={{ color: me.user.color }}>{me.user.nick || me.user.name}{me.supporter.active && " ⭐"}</h3>
           <div className="sub">{me.user.uid.split(":")[0] === "discord" ? "Discord" : me.user.uid.split(":")[0] === "google" ? "Google" : "Аккаунт"} · {me.user.name}</div>
@@ -49,7 +49,18 @@ function MeSection() {
         </div>
       </div>
       <div className="card">
-        <h4>Герой-аватарка</h4>
+        <h4>Аватарка</h4>
+        {me.user.image && (
+          <div className="avsrc">
+            <button className={!me.user.useHero ? "on" : ""} onClick={() => save({ useHero: false })}>
+              <Avatar u={{ image: me.user.image }} size={28} /> {me.user.uid.startsWith("google") ? "Из Google" : "Из Discord"}
+            </button>
+            <button className={me.user.useHero ? "on" : ""} onClick={() => save({ useHero: true })}>
+              <Avatar u={{ hero: me.user.hero, useHero: true }} size={28} /> Герой
+            </button>
+          </div>
+        )}
+        <p className="sub">Или выбери героя:</p>
         <input placeholder="Найти героя…" value={q} onChange={(e) => setQ(e.target.value)} />
         <div className="herogrid">
           {list.map((h) => (

@@ -69,7 +69,9 @@ const POST_ROUTES: Record<string, [H, { public?: boolean }?]> = {
     if (b.hero !== undefined) {
       if (!HEROES.some((h) => h.slug === b.hero)) throw new GameError("Нет такого героя");
       patch.hero = b.hero;
+      patch.useHero = true;
     }
+    if (b.useHero !== undefined) patch.useHero = !!b.useHero;
     if (b.color !== undefined || b.theme !== undefined) await needSupporter(u.uid);
     if (b.color !== undefined) { if (b.color && !NICK_COLORS.includes(String(b.color))) throw new GameError("Неверный цвет"); patch.color = b.color || undefined; }
     if (b.theme !== undefined) { if (!THEMES.includes(String(b.theme))) throw new GameError("Неверная тема"); patch.theme = b.theme; }

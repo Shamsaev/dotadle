@@ -14,7 +14,7 @@ export type PuzzleView = {
   columns?: string[]; rows?: Cell[][];
   tries?: number; guesses?: { id: number; name: string; img: string; ok: boolean }[]; art?: Art; level?: number; hints?: string[];
 };
-export type PublicUser = { uid: string; name: string; hero?: string; image?: string | null; color?: string; sup: boolean };
+export type PublicUser = { uid: string; name: string; hero?: string; image?: string | null; useHero?: boolean; color?: string; sup: boolean };
 export type League = {
   id: string; name: string; type: "guild" | "custom"; icon: string | null; code: string | null; members: number;
   admin: boolean; premium: boolean; premiumUntil: number | null; plus: boolean; tournaments: Tournament[];
@@ -24,7 +24,7 @@ export type Tournament = {
   sponsor?: { name: string; url?: string; prize?: string }; active: boolean; finished: boolean;
 };
 export type Me = {
-  user: { uid: string; name: string; nick?: string; image?: string | null; hero?: string; color?: string; theme?: string };
+  user: { uid: string; name: string; nick?: string; image?: string | null; hero?: string; useHero?: boolean; color?: string; theme?: string };
   supporter: { active: boolean; until: number }; paywall: boolean; can: { supporter: boolean };
   leagues: League[]; colors: string[]; themes: string[]; launchDay: string; today: string; memory: boolean;
 };

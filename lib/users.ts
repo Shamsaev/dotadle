@@ -7,6 +7,7 @@ export type Profile = {
   nick?: string;         // своё имя (по желанию)
   image?: string | null; // аватарка Google/Discord
   hero?: string;         // slug героя-аватарки
+  useHero?: boolean;     // true — показывать героя вместо аватарки Discord/Google
   color?: string;        // цвет ника (саппортеры)
   theme?: string;        // тема оформления (саппортеры)
 };
@@ -52,7 +53,7 @@ export async function grantSupporter(uid: string, days: number) {
 }
 
 // Публичная карточка игрока для рейтингов и гонки
-export type PublicUser = { uid: string; name: string; hero?: string; image?: string | null; color?: string; sup: boolean };
+export type PublicUser = { uid: string; name: string; hero?: string; image?: string | null; useHero?: boolean; color?: string; sup: boolean };
 
 export async function publicUsers(uids: string[]): Promise<Record<string, PublicUser>> {
   const uniq = [...new Set(uids)];
@@ -66,7 +67,7 @@ export async function publicUsers(uids: string[]): Promise<Record<string, Public
   uniq.forEach((uid, i) => {
     const p = profiles[i] ?? { name: "Игрок" };
     const sup = (sups[i] ?? 0) > now;
-    out[uid] = { uid, name: p.nick || p.name, hero: p.hero, image: p.image, color: sup || !PAYWALL ? p.color : undefined, sup };
+    out[uid] = { uid, name: p.nick || p.name, hero: p.hero, image: p.image, useHero: p.useHero, color: sup || !PAYWALL ? p.color : undefined, sup };
   });
   return out;
 }
