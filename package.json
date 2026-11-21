@@ -1,0 +1,23 @@
+{
+  "name": "dotadle",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.41.0",
+    "next": "^16.4.6",
+    "next-auth": "5.0.0-beta.32",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "@discord/embedded-app-sdk": "^2.5.0",
+    "jose": "^6.2.18"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "typescript": "^5"
+  }
+}
