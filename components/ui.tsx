@@ -15,6 +15,7 @@ export function UserName({ u }: { u?: Partial<PublicUser> | null }) {
   return (
     <span className="uname" style={u.color ? { color: u.color } : undefined}>
       {u.name}{u.sup && <span className="badge" title="Саппортер">⭐</span>}
+      {!!u.streak && u.streak >= 2 && <span className="streak" title={`Серия: ${u.streak} дн. подряд`}>🔥{u.streak}</span>}
     </span>
   );
 }
@@ -112,7 +113,7 @@ export function AsciiArt({ art }: { art: Art }) {
     const cv = ref.current, box = wrap.current;
     if (!cv || !box) return;
     const draw = () => {
-      const W = Math.min(box.clientWidth - 16, 380, (window.innerHeight * 0.55) / ((art.rows / art.cols) / 0.6));
+      const W = Math.min(box.clientWidth - 16, 560, (window.innerHeight * 0.5) / ((art.rows / art.cols) / 0.6));
       const cw = W / art.cols, ch = cw / 0.6, H = art.rows * ch;
       const dpr = window.devicePixelRatio || 1;
       cv.width = W * dpr; cv.height = H * dpr; cv.style.width = `${W}px`; cv.style.height = `${H}px`;
@@ -121,7 +122,7 @@ export function AsciiArt({ art }: { art: Art }) {
       ctx.clearRect(0, 0, W, H);
       ctx.font = `700 ${Math.floor(ch * 0.92)}px ui-monospace, Menlo, Consolas, monospace`;
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      const big = art.cols <= 15;
+      const big = art.cols <= 21;
       for (let y = 0; y < art.rows; y++) for (let x = 0; x < art.cols; x++) {
         const i = y * art.cols + x;
         const c = art.chars[i];
@@ -140,8 +141,8 @@ export function AsciiArt({ art }: { art: Art }) {
 }
 
 // ---------- Панель загадки (классика или портрет) ----------
-export function Puzzle({ view, onGuess, busy, title, points, extra, footer }: {
-  view: PuzzleView; onGuess: (id: number) => void; busy?: boolean; title: string; points?: number | null;
+export function Puzzle({ view, onGuess, busy, title, points, streak, extra, footer }: {
+  view: PuzzleView; onGuess: (id: number) => void; busy?: boolean; title: string; points?: number | null; streak?: number;
   extra?: React.ReactNode; footer?: React.ReactNode;
 }) {
   const [anim, setAnim] = useState(false);
@@ -179,6 +180,7 @@ export function Puzzle({ view, onGuess, busy, title, points, extra, footer }: {
             <h2>{view.solved ? `Это ${view.answer.name}!` : `Это был ${view.answer.name}`}</h2>
             <div>{view.solved ? `Угадано за ${tries(view.attempts)}` : "Не угадано"}</div>
             {points != null && <div className="pts">+{points}</div>}
+            {!!streak && streak >= 1 && view.solved && <div className="streakline">🔥 Серия: {streak} {streak === 1 ? "день" : streak < 5 ? "дня" : "дней"} подряд</div>}
             <button className="btn" onClick={async () => { setCopied(await copyText(shareText(view, title, points))); setTimeout(() => setCopied(false), 2000); }}>
               {copied ? "Скопировано ✓" : "📤 Поделиться"}
             </button>

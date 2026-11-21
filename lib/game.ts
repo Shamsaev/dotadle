@@ -3,18 +3,20 @@ import heroesData from "./heroes.json";
 export type Hero = {
   id: number; slug: string; name: string; attr: "str" | "agi" | "int" | "all";
   melee: boolean; roles: string[]; legs: number; speed: number; range: number;
-  aliases: string[]; ru: string[];
+  aliases: string[]; ru: string[]; gender: "m" | "f" | "n"; race: string;
 };
 export type Cell = { v: string | number; s: "ok" | "part" | "no"; img?: string; arrow?: "up" | "down" };
 export type Mode = "c" | "p"; // c = классика (по параметрам), p = портрет из символов
 
 export const HEROES: Hero[] = (heroesData as Hero[]).slice().sort((a, b) => a.id - b.id);
 export const HERO_BY_ID = new Map(HEROES.map((h) => [h.id, h]));
-export const COLUMNS = ["Герой", "Атрибут", "Атака", "Роли", "Ноги", "Скорость", "Дальность"];
-export const face = (h: Hero) => `/heroes/face/${h.slug}.webp`;
-export const full = (h: Hero) => `/heroes/full/${h.slug}.webp`;
+export const COLUMNS = ["Герой", "Пол", "Раса", "Атрибут", "Атака", "Роли", "Ноги", "Скорость", "Дальность"];
+// Официальные портреты героев Dota 2 (128×72)
+export const face = (h: Hero) => `/heroes/p/${h.slug}.webp`;
+export const full = face;
 
 export const ATTR_RU = { str: "Сила", agi: "Ловкость", int: "Интеллект", all: "Универсал" } as const;
+const GENDER_RU = { m: "Мужской", f: "Женский", n: "—" } as const;
 const ROLE_RU: Record<string, string> = {
   Carry: "Керри", Support: "Саппорт", Nuker: "Нюкер", Disabler: "Контроль",
   Initiator: "Инициатор", Durable: "Танк", Escape: "Побег", Pusher: "Пушер",
@@ -82,6 +84,8 @@ export function randomHero(exclude?: number): Hero {
 export function compare(g: Hero, t: Hero): Cell[] {
   const cells: Cell[] = [
     { v: g.name, s: g.id === t.id ? "ok" : "no", img: face(g) },
+    { v: GENDER_RU[g.gender], s: g.gender === t.gender ? "ok" : "no" },
+    { v: g.race, s: g.race === t.race ? "ok" : (g.race === "Человек" || g.race === "Гуманоид") && (t.race === "Человек" || t.race === "Гуманоид") ? "part" : "no" },
     { v: ATTR_RU[g.attr], s: g.attr === t.attr ? "ok" : "no" },
     { v: g.melee ? "Ближняя" : "Дальняя", s: g.melee === t.melee ? "ok" : "no" },
   ];

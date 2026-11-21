@@ -152,6 +152,7 @@ function Leagues() {
               <button className="link danger" onClick={() => confirm(`Выйти из лиги «${l.name}»?`) && call("league/leave", { lid: l.id })}>выйти</button>
             </div>
           )}
+          {l.admin && <WebhookAdmin league={l} />}
           {l.admin && <TournamentAdmin league={l} />}
         </div>
       ))}
@@ -167,6 +168,38 @@ function Leagues() {
         </div>
       </div>
     </>
+  );
+}
+
+function WebhookAdmin({ league }: { league: League }) {
+  const { reload } = useApp();
+  const [url, setUrl] = useState("");
+  const [open, setOpen] = useState(false);
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
+  const save = async (u: string) => {
+    setErr(""); setBusy(true);
+    try { await api("league/webhook", { lid: league.id, url: u }); setUrl(""); setOpen(false); await reload(); }
+    catch (e) { setErr((e as Error).message); }
+    setBusy(false);
+  };
+  return (
+    <div className="tadmin">
+      {league.webhook ? (
+        <div className="row"><span>💬 Результаты приходят в Discord-канал ✅</span>
+          <button className="link danger" onClick={() => confirm("Отключить сообщения в канал?") && save("")}>отключить</button></div>
+      ) : !open ? (
+        <button className="btn ghost small" onClick={() => setOpen(true)}>💬 Присылать результаты в канал</button>
+      ) : (
+        <div className="form">
+          <p className="sub">В Discord: настройки нужного канала → <b>Интеграция</b> → <b>Вебхуки</b> → <b>Новый вебхук</b> → <b>Копировать URL вебхука</b>. Вставь ссылку сюда:</p>
+          <input placeholder="https://discord.com/api/webhooks/…" value={url} onChange={(e) => setUrl(e.target.value.trim())} />
+          <Err msg={err} onClose={() => setErr("")} />
+          <div className="row"><button className="btn" disabled={!url || busy} onClick={() => save(url)}>{busy ? "Проверяю…" : "Подключить"}</button>
+            <button className="link" onClick={() => setOpen(false)}>отмена</button></div>
+        </div>
+      )}
+    </div>
   );
 }
 

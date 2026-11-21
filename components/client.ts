@@ -4,7 +4,7 @@ import heroesData from "@/lib/heroes.json";
 export type HeroLite = { id: number; slug: string; name: string; aliases: string[]; ru: string[] };
 export const HEROES: HeroLite[] = (heroesData as HeroLite[]).map(({ id, slug, name, aliases, ru }) => ({ id, slug, name, aliases, ru }));
 export const HERO_BY_SLUG = new Map(HEROES.map((h) => [h.slug, h]));
-export const faceUrl = (slug?: string) => (slug ? `/heroes/face/${slug}.webp` : "/heroes/face/wisp.webp");
+export const faceUrl = (slug?: string) => `/heroes/p/${slug || "wisp"}.webp`;
 
 export type Cell = { v: string | number; s: "ok" | "part" | "no"; img?: string; arrow?: "up" | "down" };
 export type Art = { cols: number; rows: number; chars: string; colors: string; gray: boolean };
@@ -14,10 +14,10 @@ export type PuzzleView = {
   columns?: string[]; rows?: Cell[][];
   tries?: number; guesses?: { id: number; name: string; img: string; ok: boolean }[]; art?: Art; level?: number; hints?: string[];
 };
-export type PublicUser = { uid: string; name: string; hero?: string; image?: string | null; useHero?: boolean; color?: string; sup: boolean };
+export type PublicUser = { uid: string; name: string; hero?: string; image?: string | null; useHero?: boolean; color?: string; sup: boolean; streak?: number };
 export type League = {
   id: string; name: string; type: "guild" | "custom"; icon: string | null; code: string | null; members: number;
-  admin: boolean; premium: boolean; premiumUntil: number | null; plus: boolean; tournaments: Tournament[];
+  admin: boolean; webhook: boolean; premium: boolean; premiumUntil: number | null; plus: boolean; tournaments: Tournament[];
 };
 export type Tournament = {
   id: string; lid: string; name: string; start: string; end: string; modes: ("c" | "p" | "r")[];

@@ -5,6 +5,9 @@ import {
 } from "./game";
 import { portraitView } from "./portrait";
 import { addPoints, statClassic, statPortrait } from "./scores";
+import { bumpStreak, getStreak } from "./streak";
+import { COLORS, avatarOf, notifyUserLeagues, siteUrl } from "./notify";
+import { getProfile } from "./users";
 
 export class GameError extends Error {}
 const TTL = 60 * 60 * 24 * 45;
@@ -49,7 +52,8 @@ export async function dailyState(uid: string, mode: Mode) {
     kv.get<Progress>(pk(mode, day, uid)),
     kv.hget<DayResult>(`r:${mode}:${day}`, uid),
   ]);
-  return { day, nextIn: secondsToNextDay(), points: res?.points ?? null, first: res?.first ?? false,
+  const streak = await getStreak(uid);
+  return { day, nextIn: secondsToNextDay(), points: res?.points ?? null, first: res?.first ?? false, streak: streak.current,
     ...viewPuzzle(mode, target, pr ?? { ids: [] }) };
 }
 
@@ -76,8 +80,35 @@ export async function dailyGuess(uid: string, mode: Mode, heroId: number) {
     await addPoints(uid, points, mode, day);
     if (mode === "c") await statClassic(uid, n, first, day);
     else await statPortrait(uid, n, next.done === "win");
+    const streak = next.done === "win" ? (await bumpStreak(uid, day)).n : (await getStreak(uid)).current;
+    await announce(uid, mode, target, next, points, first, streak);
   }
   return dailyState(uid, mode);
+}
+
+const EM = { ok: "🟩", part: "🟨", no: "🟥" } as const;
+function grid(mode: Mode, target: Hero, ids: number[]) {
+  if (mode === "p") return ids.map((id) => (id === target.id ? "🟩" : "🟥")).join("");
+  const rows = ids.map((id) => compare(HERO_BY_ID.get(id)!, target).slice(1).map((c) => EM[c.s]).join(""));
+  return (rows.length > 8 ? [...rows.slice(0, 3), "⋯", ...rows.slice(-4)] : rows).join("\n");
+}
+const word = (n: number) => (n % 10 === 1 && n % 100 !== 11 ? "попытку" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "попытки" : "попыток");
+
+// Сообщение в Discord-каналы лиг игрока (ответ не раскрываем)
+async function announce(uid: string, mode: Mode, target: Hero, pr: Progress, points: number, first: boolean, streak: number) {
+  try {
+    const p = await getProfile(uid);
+    const n = pr.ids.length;
+    const label = mode === "c" ? "🧩 Классика" : "🖼️ Портрет";
+    const head = pr.done === "win"
+      ? `угадал(а) героя дня за **${n}** ${word(n)} · **+${points}**${first ? " · 🥇 первым!" : ""}${streak >= 2 ? ` · 🔥 ${streak}` : ""}`
+      : "не угадал(а) героя дня ❌";
+    await notifyUserLeagues(uid, {
+      author: { name: `${p.nick || p.name} — ${label}`, icon_url: avatarOf(p) },
+      description: `${head}\n\n${grid(mode, target, pr.ids)}`,
+      color: pr.done === "win" ? COLORS.win : COLORS.fail, url: siteUrl(),
+    });
+  } catch (e) { console.error("[dotadle] announce failed", e); }
 }
 
 export async function dayResults(mode: Mode, day: string) {

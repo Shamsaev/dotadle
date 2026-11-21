@@ -13,6 +13,9 @@ import { randomCode, extendLeaguePremium } from "@/lib/leagues";
 import { NICK_COLORS, PAYWALL, THEMES, canSupporterFeatures, getProfile, grantSupporter, publicUsers, supporterUntil, touchUser, updateProfile } from "@/lib/users";
 import { HEROES, LAUNCH_DAY, shiftDay, today } from "@/lib/game";
 import { discordAvatar, discordGet, exchangeCode, syncGuilds, DUser } from "@/lib/discord";
+import { COLORS, WEBHOOK_RE, getWebhook, postWebhook, setWebhook } from "@/lib/notify";
+import { getStreak } from "@/lib/streak";
+import { postDailySummaries } from "@/lib/summary";
 
 export const dynamic = "force-dynamic";
 
@@ -28,10 +31,10 @@ async function myLeagues(uid: string) {
   for (const lid of lids) {
     const l = await getLeague(lid);
     if (!l) continue;
-    const [admin, members, tours] = await Promise.all([isAdmin(lid, uid), leagueMembers(lid), leagueTournaments(lid)]);
+    const [admin, members, tours, hook] = await Promise.all([isAdmin(lid, uid), leagueMembers(lid), leagueTournaments(lid), getWebhook(lid)]);
     out.push({
       id: lid, name: l.name, type: l.type, icon: l.icon ?? null, code: l.type === "custom" ? lid.slice(1) : null,
-      members: members.length, admin, premium: isLeaguePremium(l), premiumUntil: l.premiumUntil ?? null, plus: canLeaguePlus(l),
+      members: members.length, admin, webhook: !!hook, premium: isLeaguePremium(l), premiumUntil: l.premiumUntil ?? null, plus: canLeaguePlus(l),
       tournaments: tours.map((t) => ({ ...t, active: tournamentActive(t), finished: t.end < today() })),
     });
   }
@@ -53,7 +56,11 @@ const GET_ROUTES: Record<string, [H, { public?: boolean }?]> = {
   endless: [async (u, _b, url) => { await needSupporter(u.uid); return endlessState(u.uid, mode(url.searchParams.get("mode"))); }],
   board: [async (u, _b, url) => getBoard(str(url.searchParams.get("scope")) || "global", str(url.searchParams.get("period")) || "today", u.uid)],
   leagues: [async (u) => myLeagues(u.uid)],
-  stats: [async (u) => { await needSupporter(u.uid); return getStats(u.uid); }],
+  stats: [async (u) => {
+    await needSupporter(u.uid);
+    const [s, st] = await Promise.all([getStats(u.uid), getStreak(u.uid)]);
+    return { ...s, streak: st.current, best_streak: st.best };
+  }],
   supporters: [async () => {
     const top = await kv.zrevrange("supporters", 0, 199);
     const users = await publicUsers(top.map(([x]) => x));
@@ -147,6 +154,19 @@ const POST_ROUTES: Record<string, [H, { public?: boolean }?]> = {
     await deleteTournament(lid, str(b.id, 80));
     return { ok: true };
   }],
+  "league/webhook": [async (u, b) => {
+    const lid = str(b.lid, 40);
+    if (!(await getLeague(lid))) throw new GameError("Лига не найдена");
+    if (!(await isAdmin(lid, u.uid))) throw new GameError("Настраивать канал могут только админы лиги");
+    const url = str(b.url, 300);
+    if (!url) { await setWebhook(lid, null); return { ok: true, webhook: false }; }
+    const devHook = process.env.DEV_LOGIN === "1" && url.startsWith("http://127.0.0.1:"); // только для локальных тестов
+    if (!WEBHOOK_RE.test(url) && !devHook) throw new GameError("Это не похоже на ссылку вебхука Discord");
+    const r = await postWebhook(url, [{ title: "✅ Dotadle подключён", description: "Сюда будут приходить результаты игроков, гонок и итоги дня.", color: COLORS.win }]);
+    if (r !== "ok") throw new GameError("Discord не принял сообщение: проверь ссылку вебхука");
+    await setWebhook(lid, url);
+    return { ok: true, webhook: true };
+  }],
   redeem: [async (u, b) => redeem(u.uid, str(b.code, 40), str(b.lid, 40) || undefined)],
   "race/create": [async (u, b) => {
     const lid = str(b.lid, 40) || null;
@@ -183,7 +203,14 @@ type Ctx = { params: Promise<{ path: string[] }> };
 const notFound = () => Response.json({ error: "not found" }, { status: 404 });
 
 export async function GET(req: Request, ctx: Ctx) {
-  const r = GET_ROUTES[(await ctx.params).path.join("/")];
+  const path = (await ctx.params).path.join("/");
+  if (path === "cron") {
+    // Vercel Cron: присылает Authorization: Bearer <CRON_SECRET>
+    const secret = process.env.CRON_SECRET;
+    if (!secret || req.headers.get("authorization") !== `Bearer ${secret}`) return Response.json({ error: "forbidden" }, { status: 403 });
+    return Response.json(await postDailySummaries());
+  }
+  const r = GET_ROUTES[path];
   return r ? api(r[0], r[1])(req) : notFound();
 }
 export async function POST(req: Request, ctx: Ctx) {

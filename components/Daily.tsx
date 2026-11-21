@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PuzzleView, api, fmtLeft } from "./client";
 import { Err, Puzzle } from "./ui";
 
-type DailyState = PuzzleView & { day: string; nextIn: number; points: number | null; first: boolean };
+type DailyState = PuzzleView & { day: string; nextIn: number; points: number | null; first: boolean; streak: number };
 
 export default function Daily({ mode }: { mode: "c" | "p" }) {
   const [s, setS] = useState<DailyState | null>(null);
@@ -38,9 +38,9 @@ export default function Daily({ mode }: { mode: "c" | "p" }) {
   const title = `Dotadle ${mode === "c" ? "🧩" : "🖼️"} ${s.day}`;
   return (
     <section>
-      <p className="lead">{mode === "c" ? "Угадай героя дня по параметрам" : "Угадай героя дня по портрету"}{s.first ? " · 🥇 ты первый сегодня" : ""}</p>
+      <p className="lead">{mode === "c" ? "Угадай героя дня по параметрам" : "Угадай героя дня по портрету"}{s.first ? " · 🥇 ты первый сегодня" : ""}{!s.solved && s.streak >= 1 ? ` · 🔥 ${s.streak}` : ""}</p>
       <Err msg={err} onClose={() => setErr("")} />
-      <Puzzle view={s} onGuess={guess} busy={busy} title={title} points={s.solved || s.failed ? s.points : null} />
+      <Puzzle view={s} onGuess={guess} busy={busy} title={title} points={s.solved || s.failed ? s.points : null} streak={s.streak} />
       <p className="next">Новый герой через {fmtLeft(left)}</p>
     </section>
   );

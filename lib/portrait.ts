@@ -6,7 +6,7 @@ import { ATTR_RU, Hero, PORTRAIT_TRIES } from "./game";
 const P = data as { cols: number; rows: number; grids: Record<string, string> };
 const RAMP = " .:-=+*#%@";
 // Количество колонок на каждом уровне (1 — самый размытый). Последний — после завершения.
-export const LEVEL_COLS = [8, 11, 15, 21, 29, 40, 56];
+export const LEVEL_COLS = [8, 11, 15, 21, 28, 37, 48];
 
 export type Art = { cols: number; rows: number; chars: string; colors: string; gray: boolean };
 
@@ -38,11 +38,11 @@ export function renderArt(heroId: number, level: number): Art {
       if (A < 0.08 || wa === 0) { chars += " "; colors += "000"; continue; }
       r /= wa; gg /= wa; b /= wa;
       const lum = (0.3 * r + 0.59 * gg + 0.11 * b) / 255;
-      const v = A * (0.35 + 0.65 * lum);
-      chars += RAMP[Math.min(RAMP.length - 1, Math.max(1, Math.floor(v * RAMP.length)))];
+      const v = A * (0.1 + 0.9 * lum);
+      chars += RAMP[Math.min(RAMP.length - 1, Math.max(1, Math.floor(v * 1.25 * RAMP.length)))];
       // осветляем: рендеры героев тёмные
       const mx = Math.max(r, gg, b, 1);
-      const k = Math.min(2.2, 235 / mx);
+      const k = Math.min(1.6, 235 / mx);
       const q = (c: number) => Math.min(15, Math.round((c * k) / 17)).toString(16);
       if (gray) { const l = q((r + gg + b) / 3); colors += l + l + l; }
       else colors += q(r) + q(gg) + q(b);
@@ -56,6 +56,7 @@ export function renderArt(heroId: number, level: number): Art {
 // Подсказки открываются после ошибок
 export function portraitHints(h: Hero, wrong: number, done: boolean) {
   const hints: string[] = [];
+  if (wrong >= 2 || done) hints.push(`Раса: ${h.race}`);
   if (wrong >= 3 || done) hints.push(`Атрибут: ${ATTR_RU[h.attr]}`);
   if (wrong >= 4 || done) hints.push(`Атака: ${h.melee ? "ближняя" : "дальняя"}`);
   if (wrong >= 5 || done) hints.push(`Первая буква: ${h.name[0]}`);

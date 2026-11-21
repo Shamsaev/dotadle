@@ -249,3 +249,24 @@ body { min-height: 100vh; }
   .overlay { padding: 0; align-items: flex-end; }
   .sheet { max-height: 92vh; border-radius: 16px 16px 0 0; }
 }
+.streak { margin-left: 5px; font-size: 12px; color: #ffb347; font-weight: 700; }
+.streakline { color: #ffb347; font-weight: 700; margin-bottom: 6px; }
+
+/* официальные портреты героев (16:9) */
+.list img { width: 64px; height: 36px; border-radius: 6px; object-fit: cover; }
+td.hero img { object-position: center 30%; }
+.win img.full { width: 220px; max-height: none; height: auto; border-radius: 12px; aspect-ratio: 16/9; object-fit: cover; }
+.ava { object-position: 45% 25%; }
+.tries span { aspect-ratio: 16/10; }
+.tries span img { object-fit: cover; }
+.herogrid { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); }
+.herogrid button { aspect-ratio: 16/9; }
+.raceans img { width: 85px; height: 48px; object-fit: cover; }
+.art { max-width: 580px; flex-basis: 100%; }
+.portrait { flex-direction: column; align-items: center; }
+.pside { width: 100%; max-width: 560px; }
+td { width: 66px; min-width: 66px; height: 66px; }
+@media (max-width: 520px) { .win img.full { width: 150px; } td { width: 58px; min-width: 58px; height: 58px; font-size: 10px; } }
+.portrait .art { width: 100%; }
+.stage .board { display: block; }
+.stage .board table { margin: 0 auto; }

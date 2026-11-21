@@ -1,5 +1,6 @@
 import { kv } from "./kv";
 import { HEROES } from "./game";
+import { streaksOf } from "./streak";
 
 export type SessionUser = { uid: string; name: string; image?: string | null };
 export type Profile = {
@@ -53,21 +54,22 @@ export async function grantSupporter(uid: string, days: number) {
 }
 
 // Публичная карточка игрока для рейтингов и гонки
-export type PublicUser = { uid: string; name: string; hero?: string; image?: string | null; useHero?: boolean; color?: string; sup: boolean };
+export type PublicUser = { uid: string; name: string; hero?: string; image?: string | null; useHero?: boolean; color?: string; sup: boolean; streak?: number };
 
 export async function publicUsers(uids: string[]): Promise<Record<string, PublicUser>> {
   const uniq = [...new Set(uids)];
   if (!uniq.length) return {};
-  const [profiles, sups] = await Promise.all([
+  const [profiles, sups, streaks] = await Promise.all([
     kv.mget<Profile>(uniq.map((u) => `user:${u}`)),
     kv.mget<number>(uniq.map((u) => `sup:${u}`)),
+    streaksOf(uniq),
   ]);
   const now = Date.now();
   const out: Record<string, PublicUser> = {};
   uniq.forEach((uid, i) => {
     const p = profiles[i] ?? { name: "Игрок" };
     const sup = (sups[i] ?? 0) > now;
-    out[uid] = { uid, name: p.nick || p.name, hero: p.hero, image: p.image, useHero: p.useHero, color: sup || !PAYWALL ? p.color : undefined, sup };
+    out[uid] = { uid, name: p.nick || p.name, hero: p.hero, image: p.image, useHero: p.useHero, color: sup || !PAYWALL ? p.color : undefined, sup, streak: streaks[uid] };
   });
   return out;
 }

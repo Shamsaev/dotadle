@@ -5,6 +5,7 @@ import { HERO_BY_ID, Mode, RACE_POINTS, answerOf, randomHero } from "./game";
 import { GameError, Progress, applyGuess, viewPuzzle } from "./daily";
 import { addPoints, statRace } from "./scores";
 import { publicUsers } from "./users";
+import { COLORS, notifyLeagues, siteUrl } from "./notify";
 
 const TTL = 60 * 60 * 12;
 const ONLINE_MS = 20_000;
@@ -98,6 +99,20 @@ async function finalize(rid: string, round: Round, meta: Meta) {
     if (multi) await statRace(s.uid, s.place);
   }));
   await kv.set(k.round, { ...round, status: "done", standings } satisfies Round, { ex: TTL });
+  if (multi && meta.lid) {
+    try {
+      const users = await publicUsers(standings.map((s) => s.uid));
+      const medal = ["🥇", "🥈", "🥉"];
+      const lines = standings.map((s) => s.place
+        ? `${medal[s.place - 1] ?? `${s.place}.`} **${users[s.uid].name}**: ${s.attempts} поп. · ${((s.ms ?? 0) / 1000).toFixed(1)} с · +${s.pts}`
+        : `❌ ${users[s.uid].name}`);
+      const h = HERO_BY_ID.get(round.hero)!;
+      await notifyLeagues([meta.lid], {
+        title: `⚡ Гонка, раунд ${round.n} (${round.mode === "c" ? "классика" : "портрет"})`,
+        description: `Загадан был **${h.name}**\n\n${lines.join("\n")}`, color: COLORS.race, url: siteUrl(),
+      });
+    } catch (e) { console.error("[dotadle] race notify failed", e); }
+  }
 }
 
 export async function roomState(rid: string, uid: string) {
