@@ -17,8 +17,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (account) {
         const uid = `${account.provider}:${account.providerAccountId}`;
         token.uid = uid;
-        await touchUser({ uid, name: token.name || "Игрок", image: token.picture ?? null });
-        if (account.provider === "discord" && account.access_token) await syncGuilds(uid, account.access_token);
+        // Ошибки базы или Discord API не должны ломать вход — просто пишем их в лог
+        try {
+          await touchUser({ uid, name: token.name || "Игрок", image: token.picture ?? null });
+        } catch (e) { console.error("[dotadle] touchUser failed:", e); }
+        try {
+          if (account.provider === "discord" && account.access_token) await syncGuilds(uid, account.access_token);
+        } catch (e) { console.error("[dotadle] syncGuilds failed:", e); }
       }
       return token;
     },
